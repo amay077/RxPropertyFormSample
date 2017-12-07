@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <import type="android.view.View" />
+        <variable
+            name="activity"
+            type="net.amay077.formsample.FormActivity" />
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ニックネーム" />
+
+        <!-- ニックネーム入力 -->
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            android:background="@null"
+            android:inputType="text"
+            android:maxEms="15"
+            android:maxLines="1"
+            android:minLines="1"
+            android:text="@={activity.properties.nickname}" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@{activity.properties.isValidNickNameField ? @android:color/holo_green_dark : @android:color/darker_gray}" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="OK"
+            android:textColor="@android:color/holo_green_dark"
+            android:visibility="@{activity.properties.isValidNickNameField ? View.VISIBLE : View.INVISIBLE}" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="性別" />
+
+        <!-- 「男性」or 「女性」の表示 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="@{() -> activity.onGenderClicked()}"
+            android:text="@{activity.properties.genderValueField == null ? @string/empty  : (activity.properties.genderValueField ? @string/male : @string/female)}" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@{activity.properties.isValidGenderField ? @android:color/holo_green_dark : @android:color/darker_gray}" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="OK"
+            android:textColor="@android:color/holo_green_dark"
+            android:visibility="@{activity.properties.isValidGenderField ? View.VISIBLE : View.INVISIBLE}" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="生年月日" />
+
+        <!-- [19XX/XX/XX]とゆう生年月日の表示 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="@{() -> activity.onBirthdayClicked()}"
+            android:text="@={activity.properties.birthdayValueField}" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@{activity.properties.isValidBirthdayField ? @android:color/holo_green_dark : @android:color/darker_gray}" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="OK"
+            android:textColor="@android:color/holo_green_dark"
+            android:visibility="@{activity.properties.isValidBirthdayField ? View.VISIBLE : View.INVISIBLE}" />
+
+        <!--利用規約同意のチェックボックス-->
+        <CheckBox
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="@{(v) -> activity.properties.onCheckedChanged(v)}"
+            android:text="利用規約に同意します" />
+
+        <!--利用規約同意のチェックボックス-->
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="53dp"
+            android:background="@{activity.properties.canRegister ? @android:color/holo_green_dark : @android:color/darker_gray}"
+            android:clickable="@{activity.properties.canRegister ? true : false}"
+            android:enabled="@{activity.properties.canRegister ? true : false}"
+            android:onClick="@{() -> activity.register()}"
+            android:text="登録" />
+
+    </LinearLayout>
+</layout>
