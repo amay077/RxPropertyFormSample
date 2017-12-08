@@ -2,5 +2,6 @@
     <string name="app_name">FormSample</string>
     <string name="male">Male</string>
     <string name="female">Female</string>
+    <string name="other">Other</string>
     <string name="empty">Empty</string>
 </resources>

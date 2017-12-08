@@ -12,6 +12,10 @@ import android.arch.lifecycle.Observer
 import android.widget.Toast
 import java.util.*
 
+/** 数値から Gender enum */
+fun GenderFromId(id: Int) : FormProperties.Gender
+        = FormProperties.Gender.values().first { it.id == id }
+
 class FormActivity : AppCompatActivity() {
     val properties = FormProperties()
 
@@ -27,7 +31,7 @@ class FormActivity : AppCompatActivity() {
     }
 
     fun onGenderClicked() {
-        val items = arrayOf("男性", "女性")
+        val items = arrayOf("男性", "女性", "その他")
         AlertDialog.Builder(this)
                 .setTitle("性別を選択してください")
                 .setItems(items, { _, which -> properties.gender.set(GenderFromId(which))})

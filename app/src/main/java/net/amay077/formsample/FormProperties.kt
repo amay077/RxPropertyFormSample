@@ -13,20 +13,27 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class FormProperties {
+    enum class Gender(val id :Int) {
+        MAN(0),
+        WOMAN(1),
+        OTHER(2),
+        NOT_SET(9)
+    }
+
     private val disposables = CompositeDisposable()
 
     /** ニックネーム */
     val nickname = RxProperty<String>("")
-            .setValidatorKt({
+            .setValidatorKt {
                 if (it.length < 2 || it.length > 10)
                     // エラーの場合はその説明を、エラーなしの場合は null を返却
-                    "ニックネームは2文字以上10文字以下にしてください" else null })
+                    "ニックネームは2文字以上10文字以下にしてください" else null }
 
     /** 誕生日(Rawデータ) */
     val birthday = RxProperty<Calendar>(Calendar.getInstance())
-            .setValidatorKt({
+            .setValidatorKt {
                 if (it >= Calendar.getInstance().apply { add(Calendar.YEAR, -18 ) }) "18歳以上が必要です" else null
-            })
+            }
 
     /** 誕生日(表示用文字列) */
     val birthdayText = birthday.map {
@@ -35,13 +42,14 @@ class FormProperties {
 
     /** 性別(Rawデータ) */
     val gender = RxProperty<Gender>(Gender.NOT_SET)
-            .setValidatorKt({ if (it == Gender.NOT_SET) "性別は男女どちらかを選択してください" else null })
+            .setValidatorKt { if (it == Gender.NOT_SET) "性別を何か選択してください" else null }
 
     /** 性別(表示用文字列) */
     val genderTextResId = gender.map {
         when (it) {
             Gender.MAN -> R.string.male
             Gender.WOMAN -> R.string.female
+            Gender.OTHER -> R.string.other
             else -> R.string.empty
         }
     }.toReadOnlyRxProperty()
