@@ -35,12 +35,18 @@ dependencies {
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     implementation 'com.android.support:appcompat-v7:26.1.0'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation 'com.android.support:design:26.1.0'
+
+
+    // Android Architecture Components
+    implementation 'android.arch.lifecycle:runtime:1.0.3'
+    implementation 'android.arch.lifecycle:extensions:1.0.0'
 
     // Rx, RxProperty
     implementation 'io.reactivex.rxjava2:rxjava:2.0.7'
-    implementation 'io.reactivex.rxjava2:rxkotlin:2.1.0'
     implementation 'com.github.k-kagurazaka.rx-property-android:rx-property:3.1.0'
     implementation 'com.github.k-kagurazaka.rx-property-android:rx-property-kotlin:3.1.0'
+    implementation 'io.reactivex.rxjava2:rxkotlin:2.1.0'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'

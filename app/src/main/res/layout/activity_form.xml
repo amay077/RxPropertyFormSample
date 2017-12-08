@@ -5,14 +5,18 @@
 
     <data>
         <import type="android.view.View" />
+
         <variable
             name="activity"
             type="net.amay077.formsample.FormActivity" />
     </data>
 
     <LinearLayout
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        tools:context="net.amay077.formsample.FormActivity"
+        android:padding="20dp"
         android:orientation="vertical">
 
         <TextView
@@ -21,31 +25,27 @@
             android:text="ニックネーム" />
 
         <!-- ニックネーム入力 -->
-        <EditText
+        <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
-            android:layout_height="20dp"
-            android:background="@null"
-            android:inputType="text"
-            android:maxEms="15"
-            android:maxLines="1"
-            android:minLines="1"
-            android:text="@={activity.properties.nickname}" />
+            android:layout_height="wrap_content"
+            app:error="@{activity.properties.nickname.error}"
+            app:errorEnabled="@{activity.properties.nickname.hasError}">
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@{activity.properties.isValidNickNameField ? @android:color/holo_green_dark : @android:color/darker_gray}" />
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:background="@null"
+                android:inputType="text"
+                android:maxEms="15"
+                android:maxLines="1"
+                android:minLines="1"
+                android:text="@={activity.properties.nickname.value}" />
+        </android.support.design.widget.TextInputLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="OK"
-            android:textColor="@android:color/holo_green_dark"
-            android:visibility="@{activity.properties.isValidNickNameField ? View.VISIBLE : View.INVISIBLE}" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:text="性別" />
 
         <!-- 「男性」or 「女性」の表示 -->
@@ -53,23 +53,24 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="@{() -> activity.onGenderClicked()}"
-            android:text="@{activity.properties.genderValueField == null ? @string/empty  : (activity.properties.genderValueField ? @string/male : @string/female)}" />
+            android:text="@{activity.properties.genderTextResId.value}" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="@{activity.properties.isValidGenderField ? @android:color/holo_green_dark : @android:color/darker_gray}" />
+            tools:visibility="visible"
+            android:background="@{activity.properties.gender.hasError ? @android:color/holo_green_dark : @android:color/darker_gray}" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="OK"
             android:textColor="@android:color/holo_green_dark"
-            android:visibility="@{activity.properties.isValidGenderField ? View.VISIBLE : View.INVISIBLE}" />
+            android:text="@{activity.properties.gender.error}" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:text="生年月日" />
 
         <!-- [19XX/XX/XX]とゆう生年月日の表示 -->
@@ -77,36 +78,34 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="@{() -> activity.onBirthdayClicked()}"
-            android:text="@={activity.properties.birthdayValueField}" />
+            android:text="@{activity.properties.birthdayText.value}" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="@{activity.properties.isValidBirthdayField ? @android:color/holo_green_dark : @android:color/darker_gray}" />
+            tools:visibility="visible"
+            android:background="@{activity.properties.birthday.hasError ? @android:color/holo_green_dark : @android:color/darker_gray}" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="OK"
             android:textColor="@android:color/holo_green_dark"
-            android:visibility="@{activity.properties.isValidBirthdayField ? View.VISIBLE : View.INVISIBLE}" />
+            android:text="@{activity.properties.birthday.error}" />
 
         <!--利用規約同意のチェックボックス-->
         <CheckBox
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:onClick="@{(v) -> activity.properties.onCheckedChanged(v)}"
+            android:layout_marginTop="10dp"
+            android:onClick="@{(v) -> activity.onCheckedChanged(v)}"
             android:text="利用規約に同意します" />
 
         <!--利用規約同意のチェックボックス-->
         <Button
             android:layout_width="match_parent"
             android:layout_height="53dp"
-            android:background="@{activity.properties.canRegister ? @android:color/holo_green_dark : @android:color/darker_gray}"
-            android:clickable="@{activity.properties.canRegister ? true : false}"
-            android:enabled="@{activity.properties.canRegister ? true : false}"
-            android:onClick="@{() -> activity.register()}"
-            android:text="登録" />
+            android:text="登録"
+            app:rxCommandOnClick="@{activity.properties.register}"/>
 
     </LinearLayout>
 </layout>

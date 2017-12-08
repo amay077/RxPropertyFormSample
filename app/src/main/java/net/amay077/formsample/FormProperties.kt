@@ -1,101 +1,77 @@
 package net.amay077.formsample
 
-import android.databinding.ObservableField
-import android.util.Log
-import android.view.View
-import android.widget.CheckBox
+import android.arch.lifecycle.LiveData
+import android.arch.lifecycle.MutableLiveData
 import io.reactivex.Observable
-import io.reactivex.disposables.Disposable
-import io.reactivex.functions.Function4
-import io.reactivex.subjects.BehaviorSubject
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.addTo
+import jp.keita.kagurazaka.rxproperty.Nothing
+import jp.keita.kagurazaka.rxproperty.RxProperty
+import jp.keita.kagurazaka.rxproperty.toReadOnlyRxProperty
+import jp.keita.kagurazaka.rxproperty.toRxCommand
 import java.text.SimpleDateFormat
 import java.util.*
 
 class FormProperties {
+    private val disposables = CompositeDisposable()
 
-    enum class Gender { MAN, WOMAN, NOT_SET }
+    /** ニックネーム */
+    val nickname = RxProperty<String>("")
+            .setValidatorKt({
+                if (it.length < 2 || it.length > 10)
+                    // エラーの場合はその説明を、エラーなしの場合は null を返却
+                    "ニックネームは2文字以上10文字以下にしてください" else null })
 
-    // 各フォームの値が流れる
-    private val nicknameSubject = BehaviorSubject.create<String>()
-    private val genderSubject = BehaviorSubject.create<Gender>()
-    private val birthdaySubject = BehaviorSubject.create<Calendar>()
-    private val agreementSubject = BehaviorSubject.create<Boolean>()
+    /** 誕生日(Rawデータ) */
+    val birthday = RxProperty<Calendar>(Calendar.getInstance())
+            .setValidatorKt({
+                if (it >= Calendar.getInstance().apply { add(Calendar.YEAR, -18 ) }) "18歳以上が必要です" else null
+            })
 
-    // 各フォームに表示する値が流れる
-    val genderValueField: ObservableField<Boolean> = ObservableField()
-    val birthdayValueField: ObservableField<String> = ObservableField()
+    /** 誕生日(表示用文字列) */
+    val birthdayText = birthday.map {
+        SimpleDateFormat("yyyy/MM/dd", Locale.JAPAN).format(it.time)
+    }.toReadOnlyRxProperty()
 
-    // 各フォームに入力された値が条件を満たしているかどうかの値が流れる
-    val isValidNickNameField: ObservableField<Boolean> = ObservableField()
-    val isValidGenderField: ObservableField<Boolean> = ObservableField()
-    val isValidBirthdayField: ObservableField<Boolean> = ObservableField()
-    val canRegister: ObservableField<Boolean> = ObservableField()
+    /** 性別(Rawデータ) */
+    val gender = RxProperty<Gender>(Gender.NOT_SET)
+            .setValidatorKt({ if (it == Gender.NOT_SET) "性別は男女どちらかを選択してください" else null })
 
-    init {
-        birthdaySubject.onNext(Calendar.getInstance())
-        genderSubject.onNext(Gender.NOT_SET)
-        nicknameSubject.onNext("")
-        agreementSubject.onNext(false)
-    }
-
-    var nickname: String = ""
-        set(value) {
-            field = value
-            nicknameSubject.onNext(value)
+    /** 性別(表示用文字列) */
+    val genderTextResId = gender.map {
+        when (it) {
+            Gender.MAN -> R.string.male
+            Gender.WOMAN -> R.string.female
+            else -> R.string.empty
         }
+    }.toReadOnlyRxProperty()
 
-    var birthday : Calendar? = null
-        set(value) {
-            field = value
-            value?.let {
-                birthdayValueField.set(SimpleDateFormat("yyyy/MM/dd", Locale.JAPAN).format(value.time))
-                birthdaySubject.onNext(value)
-            }
-        }
+    /** 利用規約同意 */
+    val isAgreed = RxProperty<Boolean>(false)
 
-    var isMan: Boolean? = null
-        set(value) {
-            field = value
-            value?.let {
-                genderValueField.set(isMan)
-                genderSubject.onNext(if(isMan == true) Gender.MAN else Gender.WOMAN)
-            }
-        }
+    /** Toast を通知するためだけの LiveData */
+    private val _toast = MutableLiveData<String>()
+    val toast : LiveData<String> = _toast
 
-    private var isAgreed: Boolean = false
-    fun onCheckedChanged(v: View) {
-        isAgreed = (v as CheckBox).isChecked
-        agreementSubject.onNext(isAgreed)
-    }
+    /** 登録ボタンが実行できるか */
+    private val canRegisterExecute : Observable<Boolean> = Observable
+            .combineLatest(listOf(
+                    nickname.onHasErrorsChanged().map { !it },
+                    gender.onHasErrorsChanged().map { !it },
+                    birthday.onHasErrorsChanged().map { !it },
+                    isAgreed),
+                    { anyList -> anyList.map { it as Boolean }.all { it }})
 
-    private val nicknameValidationObservable = nicknameSubject.map {
-        it.isNotEmpty() && it.length >= 2 && it.length <= 10 // ニックネームが2文字以上10文字以下
-    }.doOnNext {
-        isValidNickNameField.set(it)
-    }
+    /** 登録ボタンを押したときのコマンド */
+    // canRegisterExecute が true の時だけ実行可能なコマンド
+    val register = canRegisterExecute.toRxCommand<Nothing>()
+            .apply { this.subscribe {
+                // RxCommand の subscribe が呼ばれた時 = ボタンが押された時
+                // とりあえずトースト投げる
+                _toast.postValue("RegistrationCompleteActivity へ移動するよ")
+            }.addTo(disposables) }
 
-    private val birthdayValidationObservable = birthdaySubject.map {
-        it.apply { add(Calendar.YEAR, 18 ) } < Calendar.getInstance() // 18歳以上
-    }.doOnNext {
-        isValidBirthdayField.set(it)
-    }
-
-    private val genderValidationObservable = genderSubject.map {
-        it != Gender.NOT_SET // 男女どちらかが設定されている
-    }.doOnNext {
-        isValidGenderField.set(it)
-    }
-
-    fun getValidationObservable(): Disposable {
-        return Observable
-                .combineLatest(
-                        nicknameValidationObservable,
-                        birthdayValidationObservable,
-                        genderValidationObservable,
-                        agreementSubject,
-                        Function4<Boolean, Boolean, Boolean, Boolean, Boolean> {
-                            isValidName, isValidDob, isValidGender, isAgreed -> isValidName && isValidDob && isValidGender && isAgreed
-                        })
-                .subscribe({ canRegister.set(it) },{ Log.e("error", it.message) })
+    fun dispose() {
+        disposables.clear()
     }
 }
