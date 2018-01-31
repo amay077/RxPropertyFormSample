@@ -24,16 +24,16 @@ class FormProperties {
 
     /** ニックネーム */
     val nickname = RxProperty<String>("")
-            .setValidator {
-                if (it.length < 2 || it.length > 10)
-                    // エラーの場合はその説明を、エラーなしの場合は null を返却
-                    "ニックネームは2文字以上10文字以下にしてください" else null }
+    val nickNameValidator : (String)->String? = {
+        if (it.length < 2 || it.length > 10)
+        // エラーの場合はその説明を、エラーなしの場合は null を返却
+            "ニックネームは2文字以上10文字以下にしてください" else null }
 
     /** 誕生日(Rawデータ) */
     val birthday = RxProperty<Calendar>(Calendar.getInstance())
-            .setValidator {
-                if (it >= Calendar.getInstance().apply { add(Calendar.YEAR, -18 ) }) "18歳以上が必要です" else null
-            }
+    val birthdayValidator : (Calendar)->String? = {
+        if (it >= Calendar.getInstance().apply { add(Calendar.YEAR, -18 ) }) "18歳以上が必要です" else null
+    }
 
     /** 誕生日(表示用文字列) */
     val birthdayText = birthday.map {
@@ -42,7 +42,7 @@ class FormProperties {
 
     /** 性別(Rawデータ) */
     val gender = RxProperty<Gender>(Gender.NOT_SET)
-            .setValidator { if (it == Gender.NOT_SET) "性別を何か選択してください" else null }
+    val genderValidator : (Gender)->String? = { if (it == Gender.NOT_SET) "性別を何か選択してください" else null }
 
     /** 性別(表示用文字列) */
     val genderTextResId = gender.map {
@@ -56,6 +56,8 @@ class FormProperties {
 
     /** 利用規約同意 */
     val isAgreed = RxProperty<Boolean>(false)
+    val isAgreedValidator : (Boolean)->String? = { if (!it) "利用規約に同意してください" else null }
+
 
     /** Toast を通知するためだけの LiveData */
     private val _toast = MutableLiveData<String>()
@@ -67,13 +69,30 @@ class FormProperties {
                     nickname.onHasErrorsChanged().map { !it },
                     gender.onHasErrorsChanged().map { !it },
                     birthday.onHasErrorsChanged().map { !it },
-                    isAgreed),
-                    { anyList -> anyList.map { it as Boolean }.all { it }})
+                    isAgreed.onHasErrorsChanged().map { !it }
+            ), { anyList -> anyList.map { it as Boolean }.all { it }})
+
+    private var isFirstExecute = true
 
     /** 登録ボタンを押したときのコマンド */
     // canRegistration が true の時だけ実行可能なコマンド
     val register = canRegistration.toRxCommand<NoParameter>()
             .apply { this.subscribe {
+
+                // 最初にボタンが押されたときに、Validator を設定する(フラグを使っているのがなんかダサい)
+                if (isFirstExecute) {
+                    isFirstExecute = false
+
+                    nickname.setValidator(nickNameValidator, true)
+                    birthday.setValidator(birthdayValidator, true)
+                    gender.setValidator(genderValidator, true)
+                    isAgreed.setValidator(isAgreedValidator, true)
+
+                    if (!this.canExecute()) {
+                        return@subscribe
+                    }
+                }
+
                 // RxCommand の subscribe が呼ばれた時 = ボタンが押された時
                 // とりあえずトースト投げる
                 _toast.postValue("RegistrationCompleteActivity へ移動するよ")

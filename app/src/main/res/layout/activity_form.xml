@@ -99,6 +99,11 @@
             android:layout_marginTop="10dp"
             android:onClick="@{(v) -> activity.onCheckedChanged(v)}"
             android:text="利用規約に同意します" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/holo_green_dark"
+            android:text="@{activity.properties.isAgreed.error}" />
 
         <!--利用規約同意のチェックボックス-->
         <Button
